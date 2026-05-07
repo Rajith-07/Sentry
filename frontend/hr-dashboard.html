@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentry — HR Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --off-white: #f7f7f5;
+      --surface: #f0eeeb;
+      --border: #e4e2de;
+      --border-strong: #d0cec9;
+      --text-primary: #1a1917;
+      --text-secondary: #6b6862;
+      --text-tertiary: #a09d98;
+      --accent: #1a1917;
+      --accent-hover: #333230;
+      --green: #16a34a;
+      --green-light: #f0fdf4;
+      --green-border: #bbf7d0;
+      --orange: #ea580c;
+      --orange-light: #fff7ed;
+      --orange-border: #fed7aa;
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --red-border: #fecaca;
+      --blue: #2563eb;
+      --blue-light: #eff6ff;
+      --blue-border: #bfdbfe;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-xl: 32px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--off-white);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(247,247,245,0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-mark {
+      width: 30px; height: 30px; background: var(--accent);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark svg { width: 16px; height: 16px; }
+    .logo-text { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.3px; }
+    .logo-badge {
+      font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-tertiary);
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 2px 8px; border-radius: 20px; margin-left: 2px;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .time-display {
+      font-family: 'DM Mono', monospace; font-size: 13px;
+      font-weight: 300; color: var(--text-secondary);
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 8px;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
+      50% { box-shadow: 0 0 0 5px rgba(22,163,74,0.08); }
+    }
+
+    /* ── Main nav tabs ── */
+    .main-tabs {
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      padding: 0 40px;
+      display: flex; gap: 0;
+    }
+    .main-tab {
+      display: flex; align-items: center; gap: 7px;
+      padding: 14px 20px 13px;
+      font-size: 13.5px; font-weight: 500;
+      color: var(--text-tertiary);
+      cursor: pointer; border: none; background: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s ease;
+      font-family: 'DM Sans', sans-serif;
+      position: relative; top: 1px;
+    }
+    .main-tab svg { width: 14px; height: 14px; }
+    .main-tab:hover { color: var(--text-secondary); }
+    .main-tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+
+    /* ── Main content ── */
+    main { flex: 1; padding: 32px 40px; max-width: 1280px; width: 100%; margin: 0 auto; }
+
+    /* ── Section heading ── */
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .section-title { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; }
+    .section-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* ── Tab panel ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Stat cards ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 22px 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex; flex-direction: column; gap: 14px;
+      cursor: pointer; transition: all 0.15s ease;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; border-radius: 3px 0 0 3px;
+      background: var(--border-strong);
+      transition: background 0.2s;
+    }
+    .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .stat-card.present::before { background: var(--green); }
+    .stat-card.late::before { background: var(--orange); }
+    .stat-card.absent::before { background: var(--red); }
+    .stat-card.active-filter { box-shadow: var(--shadow-md); }
+    .stat-card.present.active-filter { background: var(--green-light); border-color: var(--green-border); }
+    .stat-card.late.active-filter { background: var(--orange-light); border-color: var(--orange-border); }
+    .stat-card.absent.active-filter { background: var(--red-light); border-color: var(--red-border); }
+
+    .stat-top { display: flex; align-items: center; justify-content: space-between; }
+    .stat-label { font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-tertiary); }
+    .stat-badge {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stat-badge svg { width: 14px; height: 14px; }
+    .present .stat-badge { background: var(--green-light); color: var(--green); }
+    .late .stat-badge { background: var(--orange-light); color: var(--orange); }
+    .absent .stat-badge { background: var(--red-light); color: var(--red); }
+
+    .stat-num { font-size: 36px; font-weight: 600; letter-spacing: -1.5px; line-height: 1; }
+    .present .stat-num { color: var(--green); }
+    .late .stat-num { color: var(--orange); }
+    .absent .stat-num { color: var(--red); }
+
+    .stat-footer { font-size: 12px; color: var(--text-tertiary); }
+
+    /* ── Report sub-tabs ── */
+    .report-tabs {
+      display: flex; gap: 6px; margin-bottom: 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 4px; border-radius: var(--radius-sm);
+      width: fit-content;
+    }
+    .report-tab {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500;
+      padding: 7px 16px; border-radius: 7px;
+      border: none; background: transparent;
+      color: var(--text-tertiary); cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .report-tab:hover { color: var(--text-secondary); }
+    .report-tab.active {
+      background: var(--white); color: var(--text-primary);
+      box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+    }
+
+    /* ── Filters row ── */
+    .filters-row {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .filter-input {
+      font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 9px 14px;
+      color: var(--text-primary); outline: none;
+      transition: border-color 0.15s;
+    }
+    .filter-input:focus { border-color: var(--border-strong); }
+    .filter-input::placeholder { color: var(--text-tertiary); }
+    .filter-select {
+      font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 9px 32px 9px 14px;
+      color: var(--text-primary); outline: none; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23a09d98' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+      transition: border-color 0.15s;
+    }
+    .filter-select:focus { border-color: var(--border-strong); }
+
+    .btn-export {
+      margin-left: auto;
+      font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 500;
+      background: var(--accent); color: var(--white);
+      border: none; border-radius: var(--radius-sm);
+      padding: 9px 18px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-export:hover { background: var(--accent-hover); }
+    .btn-export:active { transform: scale(0.985); }
+    .btn-export svg { width: 13px; height: 13px; }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--surface); }
+    thead th {
+      padding: 11px 16px; text-align: left;
+      font-size: 11px; font-weight: 500; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--text-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--off-white); }
+    tbody td { padding: 13px 16px; font-size: 13.5px; color: var(--text-primary); }
+    .td-mono { font-family: 'DM Mono', monospace; font-size: 12.5px; font-weight: 300; color: var(--text-secondary); }
+    .td-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+    .cell-name { display: flex; align-items: center; gap: 10px; }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 500;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .pill-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .pill.present { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+    .pill.late { background: var(--orange-light); color: var(--orange); border: 1px solid var(--orange-border); }
+    .pill.absent { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+    .pill.present .pill-dot { background: var(--green); }
+    .pill.late .pill-dot { background: var(--orange); }
+    .pill.absent .pill-dot { background: var(--red); }
+
+    /* ── Analytics panel ── */
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+
+    .analytics-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 22px 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .analytics-title {
+      font-size: 12px; font-weight: 500; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--text-tertiary);
+      margin-bottom: 18px;
+    }
+
+    /* Simple bar chart */
+    .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 100px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .bar {
+      width: 100%; border-radius: 4px 4px 0 0;
+      background: var(--accent); opacity: 0.15;
+      transition: opacity 0.2s, height 0.4s ease;
+    }
+    .bar.green { background: var(--green); opacity: 1; }
+    .bar.orange { background: var(--orange); opacity: 1; }
+    .bar.red { background: var(--red); opacity: 1; }
+    .bar-label { font-size: 10px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; }
+
+    /* Donut chart */
+    .donut-wrap {
+      display: flex; align-items: center; gap: 24px;
+    }
+    .donut-svg { width: 90px; height: 90px; flex-shrink: 0; }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-secondary); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Trend line */
+    .trend-chart { width: 100%; height: 80px; }
+
+    /* Dept breakdown */
+    .dept-rows { display: flex; flex-direction: column; gap: 10px; }
+    .dept-row { display: flex; align-items: center; gap: 12px; }
+    .dept-name { font-size: 12.5px; color: var(--text-secondary); width: 100px; flex-shrink: 0; }
+    .dept-bar-track {
+      flex: 1; height: 6px; background: var(--surface);
+      border-radius: 10px; overflow: hidden;
+    }
+    .dept-bar-fill { height: 100%; border-radius: 10px; background: var(--accent); }
+    .dept-pct { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text-tertiary); width: 36px; text-align: right; }
+
+    /* ── Registration tab ── */
+    .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+
+    .reg-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    .reg-card-head {
+      padding: 22px 26px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .reg-card-title { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+    .reg-card-sub { font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; }
+
+    .reg-card-body { padding: 24px 26px; }
+
+    /* Form */
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-label { font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--text-secondary); }
+    .form-input {
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      background: var(--off-white); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 11px 14px;
+      color: var(--text-primary); outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .form-input:focus { border-color: var(--border-strong); background: var(--white); }
+    .form-input::placeholder { color: var(--text-tertiary); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 1.5px dashed var(--border-strong); border-radius: var(--radius-md);
+      padding: 32px 24px; text-align: center;
+      cursor: pointer; transition: all 0.2s ease;
+      background: var(--off-white); position: relative;
+      overflow: hidden;
+    }
+    .upload-zone:hover { border-color: var(--text-tertiary); background: var(--surface); }
+    .upload-zone.dragover { border-color: var(--accent); background: var(--surface); }
+    .upload-zone.has-image { padding: 0; border-style: solid; border-color: var(--border); }
+    #fileInput { display: none; }
+    .upload-icon { width: 40px; height: 40px; margin: 0 auto 12px; color: var(--text-tertiary); }
+    .upload-icon svg { width: 100%; height: 100%; }
+    .upload-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+    .upload-sub { font-size: 12px; color: var(--text-tertiary); }
+    .upload-formats {
+      margin-top: 12px; font-size: 11px; color: var(--text-tertiary);
+      font-family: 'DM Mono', monospace; letter-spacing: 0.05em;
+    }
+    #previewImg {
+      width: 100%; height: 200px; object-fit: cover;
+      display: block; border-radius: calc(var(--radius-md) - 1.5px);
+    }
+    .img-overlay {
+      position: absolute; inset: 0;
+      background: rgba(26,25,23,0.45); opacity: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.2s; border-radius: calc(var(--radius-md) - 1.5px);
+    }
+    .upload-zone:hover .img-overlay { opacity: 1; }
+    .img-overlay span {
+      font-size: 12.5px; font-weight: 500; color: white;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(4px);
+    }
+
+    /* Upload progress */
+    .upload-progress {
+      margin-top: 14px;
+      display: none; flex-direction: column; gap: 8px;
+    }
+    .upload-progress.visible { display: flex; }
+    .progress-label { display: flex; align-items: center; justify-content: space-between; }
+    .progress-text { font-size: 12.5px; color: var(--text-secondary); }
+    .progress-pct { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text-tertiary); }
+    .progress-track { height: 4px; background: var(--surface); border-radius: 10px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; background: var(--accent); border-radius: 10px;
+      width: 0%; transition: width 0.3s ease;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%; height: 46px;
+      background: var(--accent); color: var(--white);
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.15s ease; margin-top: 8px;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:active { transform: scale(0.985); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-primary svg { width: 14px; height: 14px; }
+
+    .btn-secondary {
+      width: 100%; height: 46px;
+      background: var(--white); color: var(--text-primary);
+      border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.15s ease; margin-top: 8px;
+    }
+    .btn-secondary:hover { background: var(--surface); }
+
+    /* Registered list */
+    .reg-list { display: flex; flex-direction: column; gap: 1px; margin-top: 4px; }
+    .reg-list-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-radius: var(--radius-sm);
+      transition: background 0.1s;
+    }
+    .reg-list-item:hover { background: var(--off-white); }
+    .reg-list-thumb {
+      width: 36px; height: 36px; border-radius: 50%;
+      object-fit: cover; border: 1px solid var(--border); flex-shrink: 0;
+      background: var(--surface);
+    }
+    .reg-list-thumb-placeholder {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: var(--text-tertiary); flex-shrink: 0;
+    }
+    .reg-list-info { flex: 1; }
+    .reg-list-name { font-size: 13.5px; font-weight: 500; }
+    .reg-list-meta { font-size: 12px; color: var(--text-tertiary); margin-top: 1px; }
+    .reg-list-status {
+      font-size: 11px; font-weight: 500;
+      padding: 3px 9px; border-radius: 20px;
+      background: var(--green-light); color: var(--green); border: 1px solid var(--green-border);
+    }
+
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--text-tertiary); font-size: 13.5px;
+    }
+    .empty-state svg { width: 32px; height: 32px; margin: 0 auto 10px; display: block; opacity: 0.4; }
+
+    /* ── Toast ── */
+    #toast-container {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; display: flex; flex-direction: column;
+      align-items: center; gap: 10px; pointer-events: none;
+      width: 100%; max-width: 400px; padding: 0 16px;
+    }
+    .toast {
+      width: 100%; background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px 18px;
+      box-shadow: var(--shadow-lg); display: flex; align-items: flex-start; gap: 12px;
+      animation: toast-in 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+      pointer-events: all;
+    }
+    .toast.removing { animation: toast-out 0.25s ease forwards; }
+    @keyframes toast-in { from { opacity:0; transform: translateY(16px) scale(0.95); } to { opacity:1; transform: translateY(0) scale(1); } }
+    @keyframes toast-out { from { opacity:1; transform: translateY(0) scale(1); } to { opacity:0; transform: translateY(8px) scale(0.97); } }
+    .toast-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .toast-icon svg { width:15px; height:15px; }
+    .toast.success .toast-icon { background:var(--green-light); color:var(--green); }
+    .toast.warning .toast-icon { background:var(--orange-light); color:var(--orange); }
+    .toast.error   .toast-icon { background:var(--red-light);    color:var(--red); }
+    .toast.info    .toast-icon { background:var(--blue-light);   color:var(--blue); }
+    .toast.success { border-color:var(--green-border); }
+    .toast.warning { border-color:var(--orange-border); }
+    .toast.error   { border-color:var(--red-border); }
+    .toast.info    { border-color:var(--blue-border); }
+    .toast-body { flex:1; }
+    .toast-title { font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:2px; }
+    .toast-msg { font-size:12.5px; color:var(--text-secondary); line-height:1.5; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 16px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-left { font-size: 12px; color: var(--text-tertiary); }
+    .footer-right { font-size: 12px; color: var(--text-tertiary); font-family: 'DM Mono', monospace; font-weight: 300; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      main { padding: 24px 20px; }
+      header { padding: 0 20px; }
+      .main-tabs { padding: 0 20px; }
+      footer { padding: 14px 20px; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .reg-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <a class="logo" href="#">
+      <div class="logo-mark">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="5.5" r="2.5" stroke="white" stroke-width="1.5"/>
+          <path d="M3 13c0-2.761 2.239-4 5-4s5 1.239 5 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">Sentry</span>
+      <span class="logo-badge">HR</span>
+    </a>
+    <div class="header-right">
+      <div class="status-dot"></div>
+      <div class="time-display" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- Main nav -->
+  <div class="main-tabs">
+    <button class="main-tab active" onclick="switchTab('reports')" id="tab-reports">
+      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M4 7h6M4 5h6M4 9h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      Reports
+    </button>
+    <button class="main-tab" onclick="switchTab('registration')" id="tab-registration">
+      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="7" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M2 12c0-2.209 2.239-4 5-4s5 1.791 5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M10.5 1.5V4.5M9 3h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      Employee Registration
+    </button>
+  </div>
+
+  <!-- Main content -->
+  <main>
+
+    <!-- ══════════════════════════════════════ REPORTS TAB ══════════════════════════════════════ -->
+    <div class="tab-panel active" id="panel-reports">
+
+      <!-- Section head -->
+      <div class="section-head">
+        <div>
+          <div class="section-title">Today's Attendance</div>
+          <div class="section-sub" id="reportDateSub">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stat-grid">
+        <div class="stat-card present active-filter" id="card-present" onclick="filterTable('present')">
+          <div class="stat-top">
+            <span class="stat-label">Present</span>
+            <div class="stat-badge">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="stat-num" id="countPresent">—</div>
+          <div class="stat-footer">out of <span id="totalEmp">—</span> employees</div>
+        </div>
+        <div class="stat-card late" id="card-late" onclick="filterTable('late')">
+          <div class="stat-top">
+            <span class="stat-label">Late</span>
+            <div class="stat-badge">
+              <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4v3.5l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div class="stat-num" id="countLate">—</div>
+          <div class="stat-footer">after 9:15 AM check-in</div>
+        </div>
+        <div class="stat-card absent" id="card-absent" onclick="filterTable('absent')">
+          <div class="stat-top">
+            <span class="stat-label">Absent</span>
+            <div class="stat-badge">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <div class="stat-num" id="countAbsent">—</div>
+          <div class="stat-footer">not clocked in yet</div>
+        </div>
+      </div>
+
+      <!-- Report sub-tabs + filters -->
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <div class="report-tabs">
+          <button class="report-tab active" onclick="setReportTab('present', this)">Present</button>
+          <button class="report-tab" onclick="setReportTab('late', this)">Late</button>
+          <button class="report-tab" onclick="setReportTab('absent', this)">Absent</button>
+        </div>
+        <div class="filters-row" style="margin:0;">
+          <input class="filter-input" type="text" placeholder="Search employee…" id="searchInput" oninput="applyFilters()" />
+          <select class="filter-select" id="deptFilter" onchange="applyFilters()">
+            <option value="">All Departments</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Design">Design</option>
+            <option value="Sales">Sales</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+          </select>
+          <button class="btn-export" onclick="exportCSV()">
+            <svg viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M3.5 6l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 10.5v1a.5.5 0 00.5.5h10a.5.5 0 00.5-.5v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Department</th>
+              <th>Clock In</th>
+              <th>Clock Out</th>
+              <th>Hours</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Analytics -->
+      <div class="analytics-grid">
+
+        <!-- Weekly bar chart -->
+        <div class="analytics-card">
+          <div class="analytics-title">This Week — Attendance Rate</div>
+          <div class="bar-chart" id="weeklyBar"></div>
+        </div>
+
+        <!-- Donut -->
+        <div class="analytics-card">
+          <div class="analytics-title">Today — Breakdown</div>
+          <div class="donut-wrap">
+            <svg class="donut-svg" viewBox="0 0 90 90" id="donutSvg">
+              <circle cx="45" cy="45" r="36" fill="none" stroke="#e4e2de" stroke-width="10"/>
+              <circle cx="45" cy="45" r="36" fill="none" stroke="#16a34a" stroke-width="10"
+                stroke-dasharray="0 226.2" stroke-dashoffset="56.5"
+                stroke-linecap="round" id="donutPresent" style="transition: stroke-dasharray 0.7s ease;"/>
+              <circle cx="45" cy="45" r="36" fill="none" stroke="#ea580c" stroke-width="10"
+                stroke-dasharray="0 226.2" stroke-dashoffset="56.5"
+                stroke-linecap="round" id="donutLate" style="transition: stroke-dasharray 0.7s ease 0.1s;"/>
+            </svg>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span id="legendPresent">Present — 0%</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div><span id="legendLate">Late — 0%</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span id="legendAbsent">Absent — 0%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Department breakdown -->
+        <div class="analytics-card" style="grid-column: 1 / -1;">
+          <div class="analytics-title">Department-wise Attendance Rate</div>
+          <div class="dept-rows" id="deptBreakdown"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ REGISTRATION TAB ══════════════════════════════════════ -->
+    <div class="tab-panel" id="panel-registration">
+
+      <div class="section-head">
+        <div>
+          <div class="section-title">Employee Face Registration</div>
+          <div class="section-sub">Upload a clear face photo to enrol an employee in the recognition system</div>
+        </div>
+      </div>
+
+      <div class="reg-grid">
+
+        <!-- Form card -->
+        <div class="reg-card">
+          <div class="reg-card-head">
+            <div class="reg-card-title">New Registration</div>
+            <div class="reg-card-sub">Fill in details and upload a face photo</div>
+          </div>
+          <div class="reg-card-body">
+
+            <div class="form-group">
+              <label class="form-label">Employee ID</label>
+              <input class="form-input" type="text" id="empId" placeholder="EMP-0042" />
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Upload zone -->
+            <div class="form-label" style="margin-bottom: 8px;">Face Photo</div>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+              ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+              <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)" />
+              <div id="uploadPlaceholder">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="15" r="7" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6 34c0-7.732 6.268-12 14-12s14 4.268 14 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="30" cy="10" r="6" fill="var(--off-white)" stroke="var(--border)" stroke-width="1"/>
+                    <path d="M30 8v4M28 10h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="upload-title">Drop a face photo here</div>
+                <div class="upload-sub">or click to browse files</div>
+                <div class="upload-formats">JPG · PNG · WEBP · max 5 MB</div>
+              </div>
+              <img id="previewImg" src="" alt="" style="display:none;" />
+              <div class="img-overlay" id="imgOverlay" style="display:none;"><span>Change photo</span></div>
+            </div>
+
+            <!-- Progress -->
+            <div class="upload-progress" id="uploadProgress">
+              <div class="progress-label">
+                <span class="progress-text" id="progressText">Uploading…</span>
+                <span class="progress-pct" id="progressPct">0%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+
+            <button class="btn-primary" id="btnRegister" onclick="registerEmployee()" style="margin-top:20px;">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              Register Employee
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Registered list card -->
+        <div class="reg-card">
+          <div class="reg-card-head">
+            <div class="reg-card-title">Recently Registered Employees</div>
+            <div class="reg-card-sub" id="regCount">0 faces enrolled now</div>
+          </div>
+          <div class="reg-card-body" style="padding: 16px 16px;">
+            <div class="reg-list" id="regList">
+              <div class="empty-state">
+                <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="11" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M4 28c0-6.627 5.373-10 12-10s12 3.373 12 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                No employees registered yet
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <span class="footer-left">Sentry · HR Dashboard</span>
+    <span class="footer-right" id="dateDisplay">—</span>
+  </footer>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+  const BASE_API = 'https://a3yfcb5kw0.execute-api.ap-south-1.amazonaws.com/v1';
+
+  // ── Clock ────────────────────────────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    document.getElementById('dateDisplay').textContent =
+      now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Sample data ──────────────────────────────────────────────────────────────
+  const employees = [
+    { id: 'EMP-001', name: 'Anika Reddy',    dept: 'Engineering', clockIn: '08:52', clockOut: '18:10', status: 'present' },
+    { id: 'EMP-002', name: 'Rohan Mehta',    dept: 'Design',      clockIn: '09:02', clockOut: '17:55', status: 'present' },
+    { id: 'EMP-003', name: 'Priya Nair',     dept: 'Sales',       clockIn: '09:28', clockOut: '—',     status: 'late'    },
+    { id: 'EMP-004', name: 'Vikram Singh',   dept: 'HR',          clockIn: '—',     clockOut: '—',     status: 'absent'  },
+    { id: 'EMP-005', name: 'Kavya Iyer',     dept: 'Engineering', clockIn: '08:45', clockOut: '17:30', status: 'present' },
+    { id: 'EMP-006', name: 'Arjun Sharma',   dept: 'Finance',     clockIn: '09:41', clockOut: '—',     status: 'late'    },
+    { id: 'EMP-007', name: 'Sneha Pillai',   dept: 'Design',      clockIn: '—',     clockOut: '—',     status: 'absent'  },
+    { id: 'EMP-008', name: 'Nikhil Gupta',   dept: 'Engineering', clockIn: '08:59', clockOut: '18:05', status: 'present' },
+    { id: 'EMP-009', name: 'Divya Menon',    dept: 'Sales',       clockIn: '09:05', clockOut: '17:48', status: 'present' },
+    { id: 'EMP-010', name: 'Rahul Joshi',    dept: 'Finance',     clockIn: '—',     clockOut: '—',     status: 'absent'  },
+    { id: 'EMP-011', name: 'Lakshmi Patel',  dept: 'HR',          clockIn: '08:50', clockOut: '17:45', status: 'present' },
+    { id: 'EMP-012', name: 'Suresh Kumar',   dept: 'Engineering', clockIn: '09:55', clockOut: '—',     status: 'late'    },
+  ];
+
+  // ── State ────────────────────────────────────────────────────────────────────
+  let currentReportFilter = 'present';
+  let registeredEmployees = [];
+  let selectedFile = null;
+
+  // ── Tab switching ─────────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  }
+
+  // ── Reports ──────────────────────────────────────────────────────────────────
+  function initReports() {
+    const now = new Date();
+    document.getElementById('reportDateSub').textContent =
+      now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    const present = employees.filter(e => e.status === 'present').length;
+    const late    = employees.filter(e => e.status === 'late').length;
+    const absent  = employees.filter(e => e.status === 'absent').length;
+    const total   = employees.length;
+
+    document.getElementById('countPresent').textContent = present;
+    document.getElementById('countLate').textContent    = late;
+    document.getElementById('countAbsent').textContent  = absent;
+    document.getElementById('totalEmp').textContent     = total;
+
+    renderTable();
+    renderDonut(present, late, absent, total);
+    renderWeeklyBar();
+    renderDeptBreakdown();
+  }
+
+  function setReportTab(filter, btn) {
+    currentReportFilter = filter;
+    document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    // Update stat card highlight
+    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+    document.getElementById('card-' + filter).classList.add('active-filter');
+    applyFilters();
+  }
+
+  function filterTable(filter) {
+    currentReportFilter = filter;
+    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+    document.getElementById('card-' + filter).classList.add('active-filter');
+    // sync report tab buttons
+    document.querySelectorAll('.report-tab').forEach((t, i) => {
+      t.classList.toggle('active', ['present','late','absent'][i] === filter);
+    });
+    applyFilters();
+  }
+
+  function applyFilters() {
+    renderTable();
+  }
+
+  function renderTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const dept   = document.getElementById('deptFilter').value;
+    const filtered = employees.filter(e => {
+      if (e.status !== currentReportFilter) return false;
+      if (dept && e.dept !== dept) return false;
+      if (search && !e.name.toLowerCase().includes(search) && !e.id.toLowerCase().includes(search)) return false;
+      return true;
+    });
+
+    const tbody = document.getElementById('tableBody');
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-tertiary); font-size:13.5px;">No records found</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(e => {
+      const initials = e.name.split(' ').map(n => n[0]).join('').slice(0,2);
+      const hours = computeHours(e.clockIn, e.clockOut);
+      return `<tr>
+        <td><div class="cell-name">
+          <div class="td-avatar">${initials}</div>
+          <div>
+            <div style="font-weight:500">${e.name}</div>
+            <div style="font-size:11.5px;color:var(--text-tertiary);font-family:'DM Mono',monospace;">${e.id}</div>
+          </div>
+        </div></td>
+        <td style="color:var(--text-secondary)">${e.dept}</td>
+        <td class="td-mono">${e.clockIn}</td>
+        <td class="td-mono">${e.clockOut}</td>
+        <td class="td-mono">${hours}</td>
+        <td><span class="pill ${e.status}"><span class="pill-dot"></span>${e.status.charAt(0).toUpperCase()+e.status.slice(1)}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function computeHours(clockIn, clockOut) {
+    if (clockIn === '—' || clockOut === '—') return '—';
+    const [ih, im] = clockIn.split(':').map(Number);
+    const [oh, om] = clockOut.split(':').map(Number);
+    const mins = (oh * 60 + om) - (ih * 60 + im);
+    return `${Math.floor(mins/60)}h ${mins%60}m`;
+  }
+
+  function renderDonut(present, late, absent, total) {
+    const circ = 2 * Math.PI * 36; // ≈ 226.2
+    const pPct = present / total;
+    const lPct = late / total;
+
+    const pArc = pPct * circ;
+    const lArc = lPct * circ;
+    const lOffset = 56.5 - pArc; // offset after present arc
+
+    const dpEl = document.getElementById('donutPresent');
+    const dlEl = document.getElementById('donutLate');
+
+    setTimeout(() => {
+      dpEl.setAttribute('stroke-dasharray', `${pArc} ${circ - pArc}`);
+      dlEl.setAttribute('stroke-dasharray', `${lArc} ${circ - lArc}`);
+      dlEl.setAttribute('stroke-dashoffset', `${lOffset}`);
+    }, 100);
+
+    document.getElementById('legendPresent').textContent = `Present — ${Math.round(pPct*100)}%`;
+    document.getElementById('legendLate').textContent    = `Late — ${Math.round(lPct*100)}%`;
+    document.getElementById('legendAbsent').textContent  = `Absent — ${Math.round((absent/total)*100)}%`;
+  }
+
+  function renderWeeklyBar() {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const rates = [88, 92, 85, 75, 83]; // % attendance
+    const colors = ['green','green','orange','orange','green'];
+    const maxH = 80;
+
+    document.getElementById('weeklyBar').innerHTML = days.map((d, i) => {
+      const h = Math.round((rates[i] / 100) * maxH);
+      return `<div class="bar-col">
+        <div class="bar ${colors[i]}" style="height:${h}px;" title="${rates[i]}%"></div>
+        <span class="bar-label">${d}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function renderDeptBreakdown() {
+    const depts = {};
+    employees.forEach(e => {
+      if (!depts[e.dept]) depts[e.dept] = { present: 0, total: 0 };
+      depts[e.dept].total++;
+      if (e.status !== 'absent') depts[e.dept].present++;
+    });
+
+    document.getElementById('deptBreakdown').innerHTML = Object.entries(depts).map(([dept, d]) => {
+      const pct = Math.round((d.present / d.total) * 100);
+      return `<div class="dept-row">
+        <span class="dept-name">${dept}</span>
+        <div class="dept-bar-track"><div class="dept-bar-fill" style="width:${pct}%"></div></div>
+        <span class="dept-pct">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
+
+  function exportCSV() {
+    const rows = [['ID', 'Name', 'Department', 'Clock In', 'Clock Out', 'Status']];
+    employees.forEach(e => rows.push([e.id, e.name, e.dept, e.clockIn, e.clockOut, e.status]));
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `attendance_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    showToast('success', 'Export Ready', 'Attendance CSV has been downloaded.');
+  }
+
+  // ── Registration ─────────────────────────────────────────────────────────────
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.add('dragover');
+  }
+  function handleDragLeave() {
+    document.getElementById('uploadZone').classList.remove('dragover');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  }
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) processFile(file);
+  }
+
+  function processFile(file) {
+    if (!file.type.startsWith('image/')) {
+      showToast('error', 'Invalid File', 'Please upload a JPG, PNG, or WEBP image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('warning', 'File Too Large', 'Please upload an image smaller than 5 MB.');
+      return;
+    }
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const preview = document.getElementById('previewImg');
+      const placeholder = document.getElementById('uploadPlaceholder');
+      const overlay = document.getElementById('imgOverlay');
+      const zone = document.getElementById('uploadZone');
+
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+      overlay.style.display = 'flex';
+      zone.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  }
+
+async function registerEmployee() {
+  const empId = document.getElementById('empId').value.trim();
+
+  if (!empId) { showToast('warning', 'Missing ID', 'Please enter an employee ID.'); return; }
+  if (!selectedFile) { showToast('warning', 'No Photo', 'Please upload a face photo before registering.'); return; }
+
+  const btn = document.getElementById('btnRegister');
+  btn.disabled = true;
+  btn.innerHTML = `<div style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;"></div> Registering…`;
+  if (!document.getElementById('spinKF')) {
+    const s = document.createElement('style');
+    s.id = 'spinKF';
+    s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+
+  const progress = document.getElementById('uploadProgress');
+  const progressFill = document.getElementById('progressFill');
+  const progressPct = document.getElementById('progressPct');
+  const progressText = document.getElementById('progressText');
+
+  progress.classList.add('visible');
+
+  try {
+    // Step 1: POST to get presigned S3 URL
+    progressText.textContent = 'Getting upload URL…';
+    setProgress(progressFill, progressPct, 15);
+
+    const presignRes = await fetch(`${BASE_API}/employees/${encodeURIComponent(empId)}/face-upload-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 'content_type': selectedFile.type })
+    });
+    if (!presignRes.ok) throw new Error('Presign failed');
+    const presignData = await presignRes.json();
+
+    setProgress(progressFill, progressPct, 40);
+    progressText.textContent = 'Uploading photo to S3…';
+
+    // Step 2: PUT image directly to S3 presigned URL
+    const uploadRes = await fetch(presignData.upload_url, {
+      method: 'PUT',
+      headers: { 'Content-Type': selectedFile.type },
+      body: selectedFile
+    });
+    if (!uploadRes.ok) throw new Error('S3 upload failed');
+
+    setProgress(progressFill, progressPct, 100);
+    progressText.textContent = 'Registration complete!';
+    await sleep(400);
+
+    const emp = { empId, photoSrc: document.getElementById('previewImg').src };
+    registeredEmployees.push(emp);
+    renderRegList();
+
+    showToast('success', 'Employee Registered', `${empId} has been enrolled successfully.`);
+    resetRegForm();
+
+  } catch (err) {
+    console.error(err);
+    showToast('error', 'Registration Failed', 'Could not complete registration. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Register Employee`;
+    setTimeout(() => {
+      progress.classList.remove('visible');
+      setProgress(progressFill, progressPct, 0);
+    }, 1200);
+  }
+}
+
+  function setProgress(fill, pct, val) {
+    fill.style.width = val + '%';
+    pct.textContent = val + '%';
+  }
+
+  function resetRegForm() {
+    document.getElementById('empId').value = '';
+    selectedFile = null;
+    document.getElementById('previewImg').style.display = 'none';
+    document.getElementById('uploadPlaceholder').style.display = 'block';
+    document.getElementById('imgOverlay').style.display = 'none';
+    document.getElementById('uploadZone').classList.remove('has-image');
+    document.getElementById('fileInput').value = '';
+  }
+
+  function renderRegList() {
+    const list = document.getElementById('regList');
+    document.getElementById('regCount').textContent = `${registeredEmployees.length} face${registeredEmployees.length !== 1 ? 's' : ''} enrolled`;
+
+    if (!registeredEmployees.length) {
+      list.innerHTML = `<div class="empty-state"><svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="11" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M4 28c0-6.627 5.373-10 12-10s12 3.373 12 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>No employees registered yet</div>`;
+      return;
+    }
+
+    list.innerHTML = registeredEmployees.map(e => `
+      <div class="reg-list-item">
+        <img class="reg-list-thumb" src="${e.photoSrc}" alt="${e.empId}" />
+        <div class="reg-list-info">
+          <div class="reg-list-name">${e.empId}</div>
+        </div>
+        <span class="reg-list-status">Enrolled</span>
+      </div>`).join('');
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────────
+  const toastIcons = {
+    success: `<svg viewBox="0 0 15 15" fill="none"><path d="M3 7.5L6.5 11L12 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    warning: `<svg viewBox="0 0 15 15" fill="none"><path d="M7.5 2L13.5 13H1.5L7.5 2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 6V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7.5" cy="11" r="0.6" fill="currentColor"/></svg>`,
+    error:   `<svg viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M5 5L10 10M10 5L5 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+    info:    `<svg viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M7.5 7V11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7.5" cy="5" r="0.6" fill="currentColor"/></svg>`
+  };
+
+  function showToast(type, title, msg) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<div class="toast-icon">${toastIcons[type]}</div>
+      <div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.classList.add('removing'); setTimeout(() => toast.remove(), 280); }, 4500);
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  initReports();
+  renderRegList();
+</script>
+</body>
+</html>

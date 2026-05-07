@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentry — Facial Attendance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --off-white: #f7f7f5;
+      --surface: #f0eeeb;
+      --border: #e4e2de;
+      --border-strong: #d0cec9;
+      --text-primary: #1a1917;
+      --text-secondary: #6b6862;
+      --text-tertiary: #a09d98;
+      --accent: #1a1917;
+      --accent-hover: #333230;
+      --green: #16a34a;
+      --green-light: #f0fdf4;
+      --green-border: #bbf7d0;
+      --orange: #ea580c;
+      --orange-light: #fff7ed;
+      --orange-border: #fed7aa;
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --red-border: #fecaca;
+      --blue: #2563eb;
+      --blue-light: #eff6ff;
+      --blue-border: #bfdbfe;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-xl: 32px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.05);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--off-white);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(247,247,245,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 30px;
+      height: 30px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-mark svg { width: 16px; height: 16px; }
+
+    .logo-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .time-display {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--text-secondary);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 8px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
+      50% { box-shadow: 0 0 0 5px rgba(22,163,74,0.08); }
+    }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+    }
+
+    .card-wrap {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      text-align: center;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ── Camera area ── */
+    .camera-area {
+      position: relative;
+      aspect-ratio: 4/3;
+      background: #0d0c0b;
+      overflow: hidden;
+    }
+
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scaleX(-1);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    #video.active { opacity: 1; }
+
+    #canvas { display: none; }
+
+    /* Viewfinder overlay */
+    .viewfinder {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vf-oval {
+      width: 52%;
+      aspect-ratio: 3/4;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 50%;
+      position: relative;
+      transition: border-color 0.3s ease;
+    }
+
+    .vf-oval.scanning {
+      border-color: rgba(255,255,255,0.55);
+      animation: oval-pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes oval-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.0); }
+      50% { box-shadow: 0 0 0 8px rgba(255,255,255,0.05); }
+    }
+
+    /* Corner ticks */
+    .vf-corner {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: rgba(255,255,255,0.7);
+      border-style: solid;
+    }
+    .vf-corner.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-radius: 3px 0 0 0; }
+    .vf-corner.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; border-radius: 0 3px 0 0; }
+    .vf-corner.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; border-radius: 0 0 0 3px; }
+    .vf-corner.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-radius: 0 0 3px 0; }
+
+    /* Scan line */
+    .scan-line {
+      position: absolute;
+      left: 4%; right: 4%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+      top: 10%;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .scanning .scan-line {
+      opacity: 1;
+      animation: scan 1.8s ease-in-out infinite;
+    }
+
+    @keyframes scan {
+      0% { top: 10%; }
+      50% { top: 85%; }
+      100% { top: 10%; }
+    }
+
+    /* Camera placeholder */
+    .cam-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: rgba(255,255,255,0.35);
+      transition: opacity 0.4s ease;
+    }
+
+    .cam-placeholder.hidden { opacity: 0; pointer-events: none; }
+
+    .cam-placeholder svg { width: 36px; height: 36px; }
+
+    .cam-placeholder p {
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+    }
+
+    /* Processing overlay */
+    .processing-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13,12,11,0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .processing-overlay.visible { opacity: 1; pointer-events: all; }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-top-color: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .processing-label {
+      font-size: 13px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Bottom panel ── */
+    .bottom-panel {
+      padding: 24px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Status strip */
+    .status-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--off-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      min-height: 40px;
+    }
+
+    .status-strip .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    .status-strip .label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      transition: color 0.3s;
+    }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-start {
+      flex: 1;
+      height: 48px;
+      background: var(--white);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-start:hover {
+      background: var(--surface);
+      border-color: var(--text-tertiary);
+    }
+
+    .btn-start:active { transform: scale(0.985); }
+
+    .btn-start svg { width: 15px; height: 15px; }
+
+    .btn-capture {
+      flex: 2;
+      height: 48px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--white);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-capture::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background 0.15s;
+    }
+
+    .btn-capture:hover::after { background: rgba(255,255,255,0.08); }
+    .btn-capture:active { transform: scale(0.985); }
+    .btn-capture:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-capture svg { width: 15px; height: 15px; }
+
+    /* ── Helper text ── */
+    .helper {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── Toast system ── */
+    #toast-container {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      width: 100%;
+      max-width: 400px;
+      padding: 0 16px;
+    }
+
+    .toast {
+      width: 100%;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      animation: toast-in 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+      pointer-events: all;
+    }
+
+    .toast.removing {
+      animation: toast-out 0.25s ease forwards;
+    }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(16px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes toast-out {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to   { opacity: 0; transform: translateY(8px) scale(0.97); }
+    }
+
+    .toast-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toast-icon svg { width: 15px; height: 15px; }
+
+    .toast.success .toast-icon { background: var(--green-light); color: var(--green); }
+    .toast.warning .toast-icon { background: var(--orange-light); color: var(--orange); }
+    .toast.error   .toast-icon { background: var(--red-light);    color: var(--red); }
+    .toast.info    .toast-icon { background: var(--blue-light);   color: var(--blue); }
+
+    .toast.success { border-color: var(--green-border); }
+    .toast.warning { border-color: var(--orange-border); }
+    .toast.error   { border-color: var(--red-border); }
+    .toast.info    { border-color: var(--blue-border); }
+
+    .toast-body { flex: 1; }
+
+    .toast-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 2px;
+    }
+
+    .toast-msg {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .toast-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 5px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-left {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .footer-right {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      header { padding: 0 20px; }
+      footer { padding: 14px 20px; }
+      .card { border-radius: var(--radius-lg); }
+      .camera-area { aspect-ratio: 1/1; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <a class="logo" href="#">
+      <div class="logo-mark">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="5.5" r="2.5" stroke="white" stroke-width="1.5"/>
+          <path d="M3 13c0-2.761 2.239-4 5-4s5 1.239 5 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">Sentry</span>
+    </a>
+    <div class="header-right">
+      <div class="status-dot"></div>
+      <div class="time-display" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main>
+    <div class="card-wrap">
+      <p class="eyebrow">Facial Recognition · Clock In / Out</p>
+
+      <div class="card">
+
+        <!-- Camera -->
+        <div class="camera-area" id="cameraArea">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="canvas"></canvas>
+
+          <!-- Placeholder -->
+          <div class="cam-placeholder" id="placeholder">
+            <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="7" width="30" height="22" rx="4" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="18" cy="18" r="6" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="18" cy="18" r="2.5" fill="currentColor" opacity="0.4"/>
+              <path d="M12 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <p>Camera inactive</p>
+          </div>
+
+          <!-- Viewfinder -->
+          <div class="viewfinder" id="viewfinder" style="opacity:0; transition: opacity 0.5s;">
+            <div class="vf-oval" id="vfOval">
+              <div class="vf-corner tl"></div>
+              <div class="vf-corner tr"></div>
+              <div class="vf-corner bl"></div>
+              <div class="vf-corner br"></div>
+              <div class="scan-line"></div>
+            </div>
+          </div>
+
+          <!-- Processing overlay -->
+          <div class="processing-overlay" id="processingOverlay">
+            <div class="spinner"></div>
+            <span class="processing-label">Recognising face…</span>
+          </div>
+        </div>
+
+        <!-- Bottom panel -->
+        <div class="bottom-panel">
+
+          <!-- Status strip -->
+          <div class="status-strip" id="statusStrip">
+            <div class="dot" id="statusDot"></div>
+            <span class="label" id="statusLabel">Start camera to begin</span>
+          </div>
+
+          <!-- Buttons -->
+          <div class="btn-row">
+            <button class="btn-start" id="btnStart" onclick="startCamera()">
+              <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.3"/>
+                <circle cx="7.5" cy="7.5" r="2.5" fill="currentColor"/>
+              </svg>
+              Camera
+            </button>
+            <button class="btn-capture" id="btnCapture" onclick="captureAndSubmit()" disabled>
+              <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="3.5" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.3"/>
+                <circle cx="7.5" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M5.5 3.5 L6.5 1.5 H8.5 L9.5 3.5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+              </svg>
+              Capture &amp; Clock
+            </button>
+          </div>
+
+          <p class="helper">Position your face within the oval and press Capture &amp; Clock. Ensure good lighting for best results.</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <span class="footer-left">Sentry · Facial Attendance Sytem</span>
+    <span class="footer-right" id="dateDisplay">—</span>
+  </footer>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+  const BASE_API = 'https://a3yfcb5kw0.execute-api.ap-south-1.amazonaws.com/v1';
+
+  // ── Clock ────────────────────────────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    document.getElementById('dateDisplay').textContent =
+      now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── State ────────────────────────────────────────────────────────────────────
+  let stream = null;
+  let cameraActive = false;
+
+  // ── Camera ───────────────────────────────────────────────────────────────────
+  async function startCamera() {
+    if (cameraActive) { stopCamera(); return; }
+    setStatus('Requesting camera access…', '#a09d98');
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
+      const video = document.getElementById('video');
+      video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        video.play();
+        video.classList.add('active');
+        document.getElementById('placeholder').classList.add('hidden');
+        document.getElementById('viewfinder').style.opacity = '1';
+        document.getElementById('btnCapture').disabled = false;
+        document.getElementById('btnStart').innerHTML = `
+          <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="9" height="9" rx="1.5" fill="currentColor"/>
+          </svg>
+          Stop`;
+        cameraActive = true;
+        setStatus('Camera ready · Face the oval', '#16a34a');
+        // Start scanning animation after brief delay
+        setTimeout(() => document.getElementById('vfOval').classList.add('scanning'), 400);
+      };
+    } catch (e) {
+      setStatus('Camera access denied', '#dc2626');
+      showToast('error', 'Camera Error', 'Could not access your camera. Please check browser permissions and try again.');
+    }
+  }
+
+  function stopCamera() {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    const video = document.getElementById('video');
+    video.srcObject = null;
+    video.classList.remove('active');
+    document.getElementById('placeholder').classList.remove('hidden');
+    document.getElementById('viewfinder').style.opacity = '0';
+    document.getElementById('vfOval').classList.remove('scanning');
+    document.getElementById('btnCapture').disabled = true;
+    document.getElementById('btnStart').innerHTML = `
+      <svg viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.3"/>
+        <circle cx="7.5" cy="7.5" r="2.5" fill="currentColor"/>
+      </svg>
+      Camera`;
+    cameraActive = false;
+    setStatus('Start camera to begin', '#a09d98');
+  }
+
+  // ── Capture & Submit ─────────────────────────────────────────────────────────
+  async function captureAndSubmit() {
+    if (!cameraActive) return;
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    // Flip horizontally to correct mirror effect
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
+
+    // Flash effect
+    flashEffect();
+
+    // Show processing overlay
+    document.getElementById('processingOverlay').classList.add('visible');
+    document.getElementById('btnCapture').disabled = true;
+    document.getElementById('vfOval').classList.remove('scanning');
+    setStatus('Processing face…', '#2563eb');
+
+    try {
+      // Step 1: Get presigned URL from your API
+      const blob = await canvasToBlob(canvas, 'image/jpeg', 0.92);
+
+      let presignRes;
+      try {
+        const res = await fetch(`${BASE_API}/attendance/upload-url`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content_type: 'image/jpeg' })
+        });
+        presignRes = await res.json();
+      } catch {
+        // Demo mode: simulate a response if API not configured
+        presignRes = await simulateRecognition();
+        handleRecognitionResult(presignRes);
+        return;
+      }
+
+      if (!presignRes.upload_url) {
+        // If API returned a result directly (no S3 upload needed)
+        handleRecognitionResult(presignRes);
+        return;
+      }
+
+      // Step 2: PUT image to S3 via presigned URL
+      const uploadRes = await fetch(presignRes.upload_url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: blob
+      });
+
+      if (!uploadRes.ok) throw new Error('S3 upload failed');
+
+      // Step 3: Poll or use result from presign response
+      // If your Lambda returns the recognition result async, poll here.
+      // For now, handle result from presign response if included.
+      if (presignRes.result) {
+        handleRecognitionResult(presignRes.result);
+      } else {
+        // Poll for result (replace with your actual polling endpoint)
+        await pollForResult(presignRes.job_id || presignRes.key);
+      }
+
+    } catch (err) {
+      console.error(err);
+      showToast('error', 'Upload Failed', 'Could not upload the image. Please check your connection and try again.');
+      setStatus('Upload error · Try again', '#dc2626');
+    } finally {
+      document.getElementById('processingOverlay').classList.remove('visible');
+      document.getElementById('btnCapture').disabled = false;
+      document.getElementById('vfOval').classList.add('scanning');
+    }
+  }
+
+  // ── Handle recognition result ─────────────────────────────────────────────────
+  function handleRecognitionResult(result) {
+    const status = result.status || result;
+
+    const responses = {
+      clocked_in: {
+        type: 'success',
+        title: '✓ Clocked In',
+        msg: `Welcome, ${result.name || 'Employee'}! Clocked in at ${result.time || nowTime()}.`,
+        strip: { text: `Clocked in · ${result.name || ''}`, color: '#16a34a' }
+      },
+      clocked_out: {
+        type: 'success',
+        title: '✓ Clocked Out',
+        msg: `Goodbye, ${result.name || 'Employee'}! Clocked out at ${result.time || nowTime()}.`,
+        strip: { text: `Clocked out · ${result.name || ''}`, color: '#16a34a' }
+      },
+      already_clocked_in: {
+        type: 'info',
+        title: 'Already Clocked In',
+        msg: `${result.name || 'You'} already clocked in earlier today.`,
+        strip: { text: 'Already clocked in', color: '#2563eb' }
+      },
+      face_not_clear: {
+        type: 'warning',
+        title: 'Face Not Clear',
+        msg: 'Could not detect a clear face. Ensure good lighting and face the camera directly.',
+        strip: { text: 'Face not detected clearly · Try again', color: '#ea580c' }
+      },
+      try_again: {
+        type: 'warning',
+        title: 'Try Again',
+        msg: 'Recognition confidence was too low. Please reposition and try again.',
+        strip: { text: 'Low confidence · Please retry', color: '#ea580c' }
+      },
+      not_recognised: {
+        type: 'error',
+        title: 'Not Recognised',
+        msg: 'Your face was not found in the employee database. Contact HR if this is an error.',
+        strip: { text: 'Face not recognised', color: '#dc2626' }
+      },
+      multiple_faces: {
+        type: 'warning',
+        title: 'Multiple Faces',
+        msg: 'More than one face detected. Please ensure only your face is in the frame.',
+        strip: { text: 'Multiple faces detected', color: '#ea580c' }
+      }
+    };
+
+    const r = responses[status] || {
+      type: 'info',
+      title: 'Response Received',
+      msg: result.message || JSON.stringify(result),
+      strip: { text: 'Response received', color: '#2563eb' }
+    };
+
+    showToast(r.type, r.title, r.msg, result.time || nowTime());
+    setStatus(r.strip.text, r.strip.color);
+  }
+
+  // ── Polling (stub — replace with your actual endpoint) ────────────────────────
+  async function pollForResult(key, attempts = 0) {
+    if (attempts > 15) throw new Error('Recognition timed out');
+    await sleep(800);
+    try {
+      const res = await fetch(`${BASE_API}/attendance/result?key=${encodeURIComponent(key)}`); // FLAG
+      const data = await res.json();
+      if (data.status) { handleRecognitionResult(data); return; }
+    } catch {}
+    await pollForResult(key, attempts + 1);
+  }
+
+  // ── Demo simulation (used when API not configured) ────────────────────────────
+  async function simulateRecognition() {
+    await sleep(2200);
+    const statuses = ['clocked_in', 'clocked_out', 'face_not_clear', 'try_again', 'not_recognised'];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    return { status, name: 'Demo User', time: nowTime() };
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+  function canvasToBlob(canvas, type, quality) {
+    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function nowTime() {
+    return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+
+  function setStatus(text, color) {
+    document.getElementById('statusLabel').textContent = text;
+    document.getElementById('statusDot').style.background = color;
+  }
+
+  function flashEffect() {
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'absolute', inset: '0', background: 'rgba(255,255,255,0.7)',
+      zIndex: '20', pointerEvents: 'none', borderRadius: 'inherit',
+      animation: 'flash 0.25s ease forwards'
+    });
+    if (!document.getElementById('flashKF')) {
+      const style = document.createElement('style');
+      style.id = 'flashKF';
+      style.textContent = '@keyframes flash { 0%{opacity:1} 100%{opacity:0} }';
+      document.head.appendChild(style);
+    }
+    document.getElementById('cameraArea').appendChild(overlay);
+    setTimeout(() => overlay.remove(), 300);
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────────
+  const icons = {
+    success: `<svg viewBox="0 0 15 15" fill="none"><path d="M3 7.5L6.5 11L12 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    warning: `<svg viewBox="0 0 15 15" fill="none"><path d="M7.5 2L13.5 13H1.5L7.5 2Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 6V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7.5" cy="11" r="0.6" fill="currentColor"/></svg>`,
+    error:   `<svg viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M5 5L10 10M10 5L5 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+    info:    `<svg viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.4"/><path d="M7.5 7V11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7.5" cy="5" r="0.6" fill="currentColor"/></svg>`
+  };
+
+  function showToast(type, title, msg, time) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <div class="toast-icon">${icons[type] || icons.info}</div>
+      <div class="toast-body">
+        <div class="toast-title">${title}</div>
+        <div class="toast-msg">${msg}</div>
+        ${time ? `<div class="toast-time">${time}</div>` : ''}
+      </div>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('removing');
+      setTimeout(() => toast.remove(), 280);
+    }, 5000);
+  }
+</script>
+</body>
+</html>
