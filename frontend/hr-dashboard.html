@@ -789,7 +789,7 @@
 <div id="toast-container"></div>
 
 <script>
-  const BASE_API = 'https://a3yfcb5kw0.execute-api.ap-south-1.amazonaws.com/v1';
+  const BASE_API = window.__ENV__?.BASE_API;
 
   // ── Clock ────────────────────────────────────────────────────────────────────
   function updateClock() {
