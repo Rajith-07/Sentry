@@ -719,7 +719,7 @@
 <div id="toast-container"></div>
 
 <script>
-  const BASE_API = window.__ENV__?.BASE_API;
+    const BASE_API = window.__ENV__?.BASE_API;
 
   const ALLOWED_EVENT_TYPES = [
     "CLOCK_IN",
@@ -836,19 +836,14 @@
       const blob = await canvasToBlob(canvas, 'image/jpeg', 0.92);
 
       let presignRes;
-      try {
-        const res = await fetch(`${BASE_API}/attendance/upload-url`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content_type: 'image/jpeg',
-            event_type: eventType          // ← event_type included here
-          })
-        });
-        presignRes = await res.json();
-      } catch {
-        // Demo mode: simulate a response if API not configured
-        presignRes = await simulateRecognition(eventType);
+      const res = await fetch(`${BASE_API}/attendance/upload-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content_type: 'image/jpeg', event_type: eventType })
+      });
+      presignRes = await res.json();
+
+      if (!presignRes.upload_url) {
         handleRecognitionResult(presignRes);
         return;
       }
@@ -870,7 +865,7 @@
       if (presignRes.result) {
         handleRecognitionResult(presignRes.result);
       } else {
-        await pollForResult(presignRes.job_id || presignRes.key, eventType);
+        await pollForResult(presignRes.attendance_id, eventType);
       }
 
     } catch (err) {
@@ -892,48 +887,24 @@
     const status = result.status || result;
 
     const responses = {
-      clocked_in: {
+      success: {
         type: 'success',
-        title: '✓ Clocked In',
-        msg: `Welcome, ${result.name || 'Employee'}! Clocked in at ${result.time || nowTime()}.`,
-        strip: { text: `Clocked in · ${result.name || ''}`, color: '#16a34a' }
+        title: '✓ Attendance Recorded',
+        msg: `Employee <strong>${result.employee_id || 'Unknown'}</strong> clocked <strong>${result.event_type || ''}</strong> — confidence ${result.confidence != null ? result.confidence + '%' : 'N/A'}`,
+        strip: { text: `${result.event_type || 'Recorded'} · ${result.employee_id || ''}`, color: '#16a34a' }
       },
-      clocked_out: {
-        type: 'success',
-        title: '✓ Clocked Out',
-        msg: `Goodbye, ${result.name || 'Employee'}! Clocked out at ${result.time || nowTime()}.`,
-        strip: { text: `Clocked out · ${result.name || ''}`, color: '#16a34a' }
-      },
-      already_clocked_in: {
-        type: 'info',
-        title: 'Already Clocked In',
-        msg: `${result.name || 'You'} already clocked in earlier today.`,
-        strip: { text: 'Already clocked in', color: '#2563eb' }
-      },
-      face_not_clear: {
-        type: 'warning',
-        title: 'Face Not Clear',
-        msg: 'Could not detect a clear face. Ensure good lighting and face the camera directly.',
-        strip: { text: 'Face not detected clearly · Try again', color: '#ea580c' }
-      },
-      try_again: {
-        type: 'warning',
-        title: 'Try Again',
-        msg: 'Recognition confidence was too low. Please reposition and try again.',
-        strip: { text: 'Low confidence · Please retry', color: '#ea580c' }
-      },
-      not_recognised: {
+      failed: {
         type: 'error',
-        title: 'Not Recognised',
-        msg: 'Your face was not found in the employee database. Contact HR if this is an error.',
-        strip: { text: 'Face not recognised', color: '#dc2626' }
+        title: 'Recognition Failed',
+        msg: result.message || 'Face recognition failed. Please try again.',
+        strip: { text: 'Recognition failed · Try again', color: '#dc2626' }
       },
-      multiple_faces: {
+      timeout: {
         type: 'warning',
-        title: 'Multiple Faces',
-        msg: 'More than one face detected. Please ensure only your face is in the frame.',
-        strip: { text: 'Multiple faces detected', color: '#ea580c' }
-      }
+        title: 'Recognition Timed Out',
+        msg: 'The server took too long to process. Please try again.',
+        strip: { text: 'Server timeout · Try again', color: '#ea580c' }
+      },
     };
 
     const r = responses[status] || {
@@ -948,17 +919,22 @@
   }
 
   // ── Polling ───────────────────────────────────────────────────────────────────
-  async function pollForResult(key, eventType, attempts = 0) {
-    if (attempts > 15) throw new Error('Recognition timed out');
-    await sleep(800);
-    try {
-      const res = await fetch(
-        `${BASE_API}/attendance/result?key=${encodeURIComponent(key)}&event_type=${encodeURIComponent(eventType)}`
-      );
-      const data = await res.json();
-      if (data.status) { handleRecognitionResult(data); return; }
-    } catch {}
-    await pollForResult(key, eventType, attempts + 1);
+  async function pollForResult(attendanceId) {
+    for (let attempts = 0; attempts < 20; attempts++) {
+      await sleep(1000);
+      try {
+        const res = await fetch(`${BASE_API}/attendance/results/${encodeURIComponent(attendanceId)}`);
+        const data = await res.json();
+        if (data.status && data.status !== 'pending') {
+          handleRecognitionResult(data);
+          return;
+        }
+      } catch (e) {
+        console.warn('Poll attempt failed', e);
+      }
+    }
+    showToast('error', 'Timed Out', 'Recognition took too long. Please try again.');
+    setStatus('Timed out · Try again', '#dc2626');
   }
 
   // ── Demo simulation ───────────────────────────────────────────────────────────
