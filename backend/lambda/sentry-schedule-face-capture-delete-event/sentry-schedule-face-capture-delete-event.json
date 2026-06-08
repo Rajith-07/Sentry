@@ -1,0 +1,20 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "AllowSchedulerCreate",
+			"Effect": "Allow",
+			"Action": [
+				"scheduler:CreateSchedule",
+				"scheduler:DeleteSchedule"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "PassSchedulerRole",
+			"Effect": "Allow",
+			"Action": "iam:PassRole",
+			"Resource": "arn:aws:iam::<Account_ID>:role/delete-face-capture-scheduler-role"
+		}
+	]
+}

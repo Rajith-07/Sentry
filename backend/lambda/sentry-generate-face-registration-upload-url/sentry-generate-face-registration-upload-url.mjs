@@ -192,7 +192,8 @@ export const handler = async (event) => {
       statusCode: 500,
       headers: corsHeaders(),
       body: JSON.stringify({
-        error: err.message
+        error: "Internal server error"
+        // error: err.message
       })
     };
   }

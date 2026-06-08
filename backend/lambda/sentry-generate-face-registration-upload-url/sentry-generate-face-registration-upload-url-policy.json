@@ -1,0 +1,33 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "AllowPutObjectToFaceRegistry",
+			"Effect": "Allow",
+			"Action": [
+				"s3:PutObject"
+			],
+			"Resource": [
+				"arn:aws:s3:::sentry-attendance-images/face-registry/*"
+			]
+		},
+		{
+			"Sid": "AllowDynamoDBcheck",
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:GetItem"
+			],
+			"Resource": "arn:aws:dynamodb:<REGION>:<Account_ID>:table/hrms-employees-v3"
+		},
+		{
+			"Sid": "AllowCloudWatchLogs",
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": "*"
+		}
+	]
+}

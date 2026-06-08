@@ -1,0 +1,35 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "AllowPutObjectToFaceCaptures",
+			"Effect": "Allow",
+			"Action": [
+				"s3:PutObject"
+			],
+			"Resource": [
+				"arn:aws:s3:::sentry-attendance-images/face-captures/*"
+			]
+		},
+		{
+			"Sid": "AllowDynamoDBAttendanceWrites",
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:PutItem"
+			],
+			"Resource": [
+				"arn:aws:dynamodb:<REGION>:<Account_ID>:table/sentry-attendance-event-log"
+			]
+		},
+		{
+			"Sid": "AllowCloudWatchLogs",
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": "*"
+		}
+	]
+}

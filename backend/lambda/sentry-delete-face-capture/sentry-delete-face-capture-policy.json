@@ -1,0 +1,13 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "AllowDeleteObject",
+			"Effect": "Allow",
+			"Action": [
+				"s3:DeleteObject"
+			],
+			"Resource": "arn:aws:s3:::sentry-attendance-images/face-captures/*"
+		}
+	]
+}

@@ -1,0 +1,31 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "RekognitionAccess",
+			"Effect": "Allow",
+			"Action": [
+				"rekognition:IndexFaces"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "S3ReadAccess",
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject"
+			],
+			"Resource": "arn:aws:s3:::sentry-attendance-images/face-registry/*"
+		},
+		{
+			"Sid": "CloudWatchLogs",
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": "*"
+		}
+	]
+}

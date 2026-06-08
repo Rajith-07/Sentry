@@ -1,0 +1,40 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "RekognitionSearchFaces",
+			"Effect": "Allow",
+			"Action": [
+				"rekognition:SearchFacesByImage"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "DynamoDBUpdateAttendance",
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:UpdateItem"
+			],
+			"Resource": "arn:aws:dynamodb:<REGION>:<Account_ID>:table/sentry-attendance-event-log"
+		},
+		{
+			"Sid": "S3GetObjectAccess",
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:GetObjectVersion"
+			],
+			"Resource": "arn:aws:s3:::sentry-attendance-images/face-captures/*"
+		},
+		{
+			"Sid": "CloudWatchLogs",
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Resource": "*"
+		}
+	]
+}
